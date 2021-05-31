@@ -13,7 +13,6 @@ library(RColorBrewer)
 library(reshape)
 #===================================================================================================================================================================================== 
 #define server
-#getOption('trait_matrix_userid')
 server <- function(input, output,session) {
 	
 #connect to postgres database
