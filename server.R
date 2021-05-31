@@ -41,7 +41,7 @@ server <- function(input, output,session) {
   rownames(env)<-env[,1]
 #correct values with "NA" instead of NA  
   env[env=="NA"]<-NA
-#for purpose of loading serialised objects objects
+#for purpose of loading serialised objects 
   dbGetQuery(con, "set standard_conforming_strings to 'on'")
 #get uk map outline to plot uk mapping objects  
   SQL_command=paste("select plot_object from plotting_tools.map_tools where description= 'map_outline';")
