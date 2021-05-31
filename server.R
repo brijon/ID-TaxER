@@ -12,7 +12,7 @@ library(gstat)
 library(RColorBrewer)
 library(reshape)
 #===================================================================================================================================================================================== 
-#Define server
+#define server
 #getOption('trait_matrix_userid')
 server <- function(input, output,session) {
 	
@@ -28,12 +28,12 @@ server <- function(input, output,session) {
   )
 #===================================================================================================================================================================================== 
 #shiny JS commands
-#Get info about app , shiny js allows "more information" to appear and dissapear when clicking more information         	
+#get info about app , shiny js allows "more information" to appear and dissapear when clicking more information         	
   onclick("more_info_button",toggle(id="more_info",anim=TRUE))
 #multiple show functions so specify shinyjs version 
   onclick("blast",shinyjs::show(id="Results",anim=TRUE))
 #===================================================================================================================================================================================== 
-#Get all sample environment information going to use this for habitat box plots
+#get all sample environment information going to use this for habitat box plots
   SQL_command=paste("select * from env_attributes.env_attributes_ur;")
 #env consists of sample avc_code (habitat code), avc (habitat description) and pH
   env <- dbGetQuery(con, SQL_command)
@@ -47,9 +47,9 @@ server <- function(input, output,session) {
   SQL_command=paste("select plot_object from plotting_tools.map_tools where description= 'map_outline';")
   uk.line <-unserialize(postgresqlUnescapeBytea( dbGetQuery(con, SQL_command))) 
 #===================================================================================================================================================================================== 
-#Define function that runs blast (sequence allignment) ,arguments are blast 16S database and query sequence
+#define function that runs blast (sequence allignment) ,arguments are blast 16S database and query sequence
   make.comparison <- function(db, query ){
-#Check query isnt empty
+#check query isnt empty
     if (query!=""){    
 #blast_command for alligning sequences returmns top 20 hits
       cmd <- paste('echo -e ">Name\n',query,'"', '|/home/brijon/ncbi-blast-2.7.1+/bin/blastn' ,'-db',
@@ -57,7 +57,7 @@ server <- function(input, output,session) {
    
 #run system command and capture output
       blast_capture<- system(paste("/bin/bash -c", shQuote(cmd)),intern=TRUE)
-#Check there are hits
+#check there are hits
       if(blast_capture[4]!="# 0 hits found"){
 #this variable will be used later to identify that output should be displayed (as hits have been returned from blast command)      
         output_switch <-"on"
@@ -70,7 +70,7 @@ server <- function(input, output,session) {
 #make empty arrays/dataframes
 #this will list all OTU's the sequence has hit to 
         OTUlist<-c()
-#This table will become main results table on ID_TaxER with subject_ID, kingdom, phylum, class, order, family, genus and species     
+#this table will become main results table on ID_TaxER with subject_ID, kingdom, phylum, class, order, family, genus and species     
 #empty matrix
         m <- matrix(nrow=0, ncol = 9)
 #convert to dataframe
@@ -103,7 +103,7 @@ server <- function(input, output,session) {
           ph.model.row <- dbGetQuery(con, SQL_command)
 #ok lets add blast percentage Identity to this         
           ph.model.row$Blast_Percentage_Identity<-blast_hit_fields[3]
-#Attatch to empty ph.model df and put blast identity first 
+#attach to empty ph.model df and put blast identity first 
           ph.model<-rbind(ph.model,ph.model.row[,c(9,1:8)])
 #remove duplicates if different areas of overlap of same sequence     
           ph.model<- subset(ph.model, !duplicated(ph.model$hit))
@@ -113,16 +113,16 @@ server <- function(input, output,session) {
           SQL_command=paste("SELECT * FROM otu_attributes.taxonomy_ur WHERE hit='",toString(OTU),"';",sep="")
 #should now have row with hit, kingdom, phylum, class, order, family, genus and species
           tax.row<-dbGetQuery(con,SQL_command)
-#Attatch to tax df
+#attach to tax df
           tax<-rbind(tax,tax.row)
           tax<- subset(tax, !duplicated(tax$hit))
 #look up otu in postgres to get abundance info    
           SQL_command=paste("SELECT * FROM otu_abund.otu_abund_ur WHERE hit='",toString(OTU),"';",sep="")
           abund.row<-dbGetQuery(con,SQL_command)
-#Attatch to abund df      
+#attach to abund df      
           abund<-rbind(abund,abund.row)
           abund<- subset(abund, !duplicated(abund$hit))
-#Attatch to all blast_output     
+#attach to all blast_output     
           all_blst_output<-c(all_blst_output,strsplit(blast_hit,"\t"))
           OTUlist=c(OTUlist,OTU)
     
@@ -147,7 +147,7 @@ server <- function(input, output,session) {
         colnames(ph.model)<-c("Blast Percentage Identity","CS OTU hit","pH HOF model","pH Optimum 1","pH Optimum 2","Model description","pH Class","Abundance rank","Occupancy")
         ph.model<-as.data.frame(ph.model)
         abund<-t(abund)
-#Make first row of abund colnames      
+#make first row of abund colnames      
         colnames(abund)<-abund[1,]
         abund<-abund[-1,]
 #return all tables      
@@ -170,7 +170,7 @@ server <- function(input, output,session) {
  #make blast run when you click blast button using eventReactive Function
  run_sequence<-eventReactive(input$blast,{make.comparison("/home/brijon/repseqs_db", input$mysequence) })
 #===================================================================================================================================================================================== 
-#Define main table 
+#define main table 
 #selection mode is one at a time (dont want to show several plots at once etc), automatically select top row otherwise other outputs will be empty when page loads which is just ugly :)
   output$blastout<-DT::renderDataTable({
     all_mod_output<-run_sequence()
@@ -198,7 +198,7 @@ server <- function(input, output,session) {
         ph.mod.obj<-postgresqlUnescapeBytea(ph.mod.obj)
         ph.mod.obj<- unserialize(ph.mod.obj)
       
-#Own custom plot with relative abundance as modifying plot hof object is a nightmare 
+#own custom plot with relative abundance as modifying plot hof object proved difficult 
         mod_choice<-Para(ph.mod.obj)$model
 #get model fit         
         fitted=ph.mod.obj$models[mod_choice][[1]][9] 
@@ -248,7 +248,6 @@ server <- function(input, output,session) {
   })     
 #===================================================================================================================================================================================== 
 #user submitted section (indicators, e.g additional information about sequence)
-
   output$Indicators=renderText({
     all_mod_output<-run_sequence()
 #if switch variable is set to on          
@@ -283,7 +282,7 @@ server <- function(input, output,session) {
   })
 
 #===================================================================================================================================================================================== 
-#Map
+#map
   output$map=renderPlot({
 #if switch on     
     all_mod_output<-run_sequence()
@@ -332,7 +331,7 @@ server <- function(input, output,session) {
     }
   })
 #===================================================================================================================================================================================== 
-#Taxonomy
+#taxonomy
   output$OTU.Taxon<-DT::renderDataTable({
     all_mod_output<-run_sequence()
     if(all_mod_output[[length(all_mod_output)]]=="on"){
@@ -358,10 +357,7 @@ server <- function(input, output,session) {
     }
      #end of render datatable 
   },selection='none',options=list(dom='t'),rownames=FALSE)
-    
-    
-#displays if switch set to off
-    
+#displays if switch set to off  
   output$Warning <- renderText({ 
     all_mod_output<-run_sequence()
     if(all_mod_output[[length(all_mod_output)]]!="on"){
@@ -370,13 +366,12 @@ server <- function(input, output,session) {
      
   })
 
-#if reset button is pressed  ,query is reset   
-   
+#if reset button is pressed, query is reset   
   observeEvent(input$resetSequence, {
     reset("mysequence")
   })
 
-#if example sequence is selected , example sequence entered into query box
+#if example sequence is selected, example sequence entered into query box
   observeEvent(input$exampleSequence, {
     updateTextInput(session,"mysequence",value="ACAGAGGTCTCAAGCGTTGTTCGGATTCATTGGGCGTAAAGGGTGCGTAGGTGGTGATGCAAGTCTGGTGTGAAATCTCGGGGCTCAACTCCGAAATTGCACCGGATACTGCGTGACTCGAGGACTGTAGAGGAGATCGGAATTCACGGTGTAGCAGTGAAATGCGTAGATATCGTGAGGAAGACCAGTTGCGAAGGCGGATCTCTGGGCAGTTCCTGACACTGAGGCACGAAGGCCAGGGGAGCAAACGGG")
   })  
