@@ -1,5 +1,4 @@
 #Load libraries
-
 library(shiny)
 library(shinyjs)
 library(DT)
@@ -12,9 +11,7 @@ library(ggplot2)
 library(gstat)
 library(RColorBrewer)
 library(reshape)
-
-
-#============================================================================================================================================================== 
+#===================================================================================================================================================================================== 
 #Define server
 #getOption('trait_matrix_userid')
 server <- function(input, output,session) {
@@ -29,16 +26,13 @@ server <- function(input, output,session) {
 	  password =getOption("trait_matrix_password")
 
   )
-#=====================================================================================================================================
+#===================================================================================================================================================================================== 
 #shiny JS commands
-#Get info about app , shiny js allows "more information" to appear and dissapear when clicking more information
-           	
+#Get info about app , shiny js allows "more information" to appear and dissapear when clicking more information         	
   onclick("more_info_button",toggle(id="more_info",anim=TRUE))
-
-#multiple show functions so specified shinyjs version 
+#multiple show functions so specify shinyjs version 
   onclick("blast",shinyjs::show(id="Results",anim=TRUE))
-#====================================================================================================================================  
-
+#===================================================================================================================================================================================== 
 #Get all sample environment information going to use this for habitat box plots
   SQL_command=paste("select * from env_attributes.env_attributes_ur;")
 #env consists of sample avc_code (habitat code), avc (habitat description) and pH
@@ -51,10 +45,8 @@ server <- function(input, output,session) {
   dbGetQuery(con, "set standard_conforming_strings to 'on'")
 #get uk map outline to plot uk mapping objects  
   SQL_command=paste("select plot_object from plotting_tools.map_tools where description= 'map_outline';")
-  uk.line <-unserialize(postgresqlUnescapeBytea( dbGetQuery(con, SQL_command)))
-
-  
-#==============================================================================================================================================================
+  uk.line <-unserialize(postgresqlUnescapeBytea( dbGetQuery(con, SQL_command))) 
+#===================================================================================================================================================================================== 
 #Define function that runs blast (sequence allignment) ,arguments are blast 16S database and query sequence
   make.comparison <- function(db, query ){
 #Check query isnt empty
@@ -73,9 +65,8 @@ server <- function(input, output,session) {
         blast_capture<-blast_capture[-length(blast_capture)]
         blast_capture<-blast_capture[6:25]
 #some dont have 20 hits! so nas appear get rid of them 
-        blast_capture<-blast_capture[!is.na(blast_capture)]
-    
-#==============================================================================================================================================================    
+        blast_capture<-blast_capture[!is.na(blast_capture)]  
+#===================================================================================================================================================================================== 
 #make empty arrays/dataframes
 #this will list all OTU's the sequence has hit to 
         OTUlist<-c()
@@ -101,8 +92,7 @@ server <- function(input, output,session) {
         m<-matrix(nrow=0,ncol=1007)
         abund<-data.frame(m)
         colnames(abund)<-samp_colnames
-
-#==============================================================================================================================================================   
+#===================================================================================================================================================================================== 
 #fill arrays and df
         for (blast_hit in blast_capture){
 #split blast fields by tab 
@@ -137,7 +127,7 @@ server <- function(input, output,session) {
           OTUlist=c(OTUlist,OTU)
     
         }
-#==============================================================================================================================================================   
+#===================================================================================================================================================================================== 
 #remove any replicates
         OTUlist<-unique(OTUlist)
 #make blast output into nice df for the GUI 
@@ -166,8 +156,7 @@ server <- function(input, output,session) {
       else{
 #if query has no hits, switch variable is given value off to identify that output should not be displayed         
         output_switch <-"off"
-        return(output_switch)
-        
+        return(output_switch)       
       }
     }
     else{
@@ -177,13 +166,10 @@ server <- function(input, output,session) {
 
     }
   }
- #===================================================================================================================================================================================== 
+#===================================================================================================================================================================================== 
  #make blast run when you click blast button using eventReactive Function
- 
-  run_sequence<-eventReactive(input$blast,{make.comparison("/home/brijon/repseqs_db", input$mysequence) })
-  
-
- #=====================================================================================================================================================================================
+ run_sequence<-eventReactive(input$blast,{make.comparison("/home/brijon/repseqs_db", input$mysequence) })
+#===================================================================================================================================================================================== 
 #Define main table 
 #selection mode is one at a time (dont want to show several plots at once etc), automatically select top row otherwise other outputs will be empty when page loads which is just ugly :)
   output$blastout<-DT::renderDataTable({
@@ -192,13 +178,9 @@ server <- function(input, output,session) {
    if(all_mod_output[[length(all_mod_output)]]=="on"){
      ph_mod_output<-all_mod_output[[1]]
    }
-   
-
    }, selection = list(mode='single',selected=1),options=list(scrollX=TRUE,pageLength=7,dom='tp'),rownames=FALSE, colnames = c("Blast Percentage Identity","CS OTU hit","pH HOF model","pH Optimum 1","pH Optimum 2","Model description","pH Class","Abundance rank","Occupancy")
   ) 
-  
-
-#================================================================================================================================================================================================
+#===================================================================================================================================================================================== 
 #HOF plot code
   output$modelplot = renderPlot({
     all_mod_output<-run_sequence()
@@ -236,9 +218,7 @@ server <- function(input, output,session) {
     }
 #end of render plot   
   })
-
-
-#================================================================================================================================================================================================
+#===================================================================================================================================================================================== 
 #LOESS plot code 
   output$loessplot = renderPlot({
     all_mod_output<-run_sequence()
@@ -265,10 +245,8 @@ server <- function(input, output,session) {
         lines(smoothed50$fit, x=OTU.spc_pH[,3],ylim=c(min(OTU.spc_pH[,2]),quantile(OTU.spc_pH[,2],0.999)), col="black",lwd=2)
       }
     }     
-  })
-      
-      
-#================================================================================================================================================================================================
+  })     
+#===================================================================================================================================================================================== 
 #user submitted section (indicators, e.g additional information about sequence)
 
   output$Indicators=renderText({
@@ -304,10 +282,8 @@ server <- function(input, output,session) {
     }
   })
 
-
-#===================================================================================================================================================================================================================   
+#===================================================================================================================================================================================== 
 #Map
-
   output$map=renderPlot({
 #if switch on     
     all_mod_output<-run_sequence()
@@ -326,9 +302,7 @@ server <- function(input, output,session) {
       }
     }
   })
-
-#===================================================================================================================================================================================================================   
-
+#===================================================================================================================================================================================== 
   output$AVC_box_plot = renderPlot({    
     all_mod_output<-run_sequence()
 #if swithch var on 
@@ -357,10 +331,8 @@ server <- function(input, output,session) {
       plot.new()
     }
   })
-
-#============================================================================================================================================
+#===================================================================================================================================================================================== 
 #Taxonomy
-  
   output$OTU.Taxon<-DT::renderDataTable({
     all_mod_output<-run_sequence()
     if(all_mod_output[[length(all_mod_output)]]=="on"){
@@ -371,9 +343,7 @@ server <- function(input, output,session) {
     }
 #no selection and just tables no extras like search(dom=t)
   },selection='none',options=list(dom='t'),rownames=FALSE)
-    
-
-#============================================================================================================================================  
+#===================================================================================================================================================================================== 
 #blast output
   output$BlastResults<-DT::renderDataTable({
 #dat_raw
@@ -409,11 +379,9 @@ server <- function(input, output,session) {
 #if example sequence is selected , example sequence entered into query box
   observeEvent(input$exampleSequence, {
     updateTextInput(session,"mysequence",value="ACAGAGGTCTCAAGCGTTGTTCGGATTCATTGGGCGTAAAGGGTGCGTAGGTGGTGATGCAAGTCTGGTGTGAAATCTCGGGGCTCAACTCCGAAATTGCACCGGATACTGCGTGACTCGAGGACTGTAGAGGAGATCGGAATTCACGGTGTAGCAGTGAAATGCGTAGATATCGTGAGGAAGACCAGTTGCGAAGGCGGATCTCTGGGCAGTTCCTGACACTGAGGCACGAAGGCCAGGGGAGCAAACGGG")
-  })
-
-   
+  })  
 }
-#=================================================================================================================================================
+
 
 
      
