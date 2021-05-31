@@ -1,6 +1,4 @@
 #load libraries
-#point to library path
-.libPaths("/home/brijon/R/x86_64-pc-linux-gnu-library/3.3/")
 library(DT)
 library(shiny)
 library(shinydashboard)
