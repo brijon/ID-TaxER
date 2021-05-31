@@ -5,7 +5,7 @@ library(shinydashboard)
 library(shinyjs)
 library(shinycssloaders)
 
-#Hack to get rid of  dashboard button
+#hack to get rid of  dashboard button
 mydashboardHeader <- function(..., title = NULL, disable = FALSE,title.navbar=NULL, .list = NULL) {
   items <- c(list(...), .list)
   tags$header(class = "main-header",
@@ -19,7 +19,7 @@ mydashboardHeader <- function(..., title = NULL, disable = FALSE,title.navbar=NU
   )))
 }
 #===================================================================================================================================================================================== 
-#Ok Defining UI page 
+#defining UI page 
 ui <- dashboardPage(
 #define header title           
   mydashboardHeader( title=tags$p("ID-TaxER",style="font-size: 40px; font-family:Calibri; background-color: #337ab7;")),
@@ -53,7 +53,7 @@ ui <- dashboardPage(
     $("header").find("nav").append(\'<span class="myClass"> Identification of Taxa & Environment Responses </span>\');
     })
     ')),
-#Hidden section about app
+#hidden section about app
     useShinyjs(),
 #tags$h is heading, tags$p is paragraph etc , tags$b is bold etc                
     shinyjs::hidden(div(id="more_info",tags$h4(tags$b("Summary"),style="color:#000080;font-family:Calibri;"),
@@ -101,7 +101,7 @@ ui <- dashboardPage(
 #end of plot tab panel
     ),
 #===================================================================================================================================================================================== 
-#Map                
+#map                
     tabPanel(title="GB Map",box(id="Map_box",withSpinner(plotOutput('map'),type=7),width=350,height=425)
 #	end of plot tab panel
 	  ),                  
